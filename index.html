@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dice Game</title>
+    <script src="main.js"></script>
+</head>
+<body onload="initWindow()">
+    <input type="radio" id="p1" name="players" onchange="changePlayers()" checked/><label id="lp1" for="p1">1 Player</label>
+    <input type="radio" id="p2" name="players" onchange="changePlayers()"/><label id="lp2" for="p2">2 Players</label>
+    <!-- <button onclick="getRandomScore()">Roll Random</button> -->
+    <button id="rollButton" onclick="reroll()">Roll</button>
+    <button id="passButton" onclick="passTurn()">Pass</button>
+    <div id="result">Score</div>
+    <div>Select dice You want to keep</div>
+    <input type="checkbox" id="d0" name="dice" onchange="updateScore(0)"/><label id="ld0" for="d0">Dice1</label>
+    <input type="checkbox" id="d1" name="dice" onchange="updateScore(1)"/><label id="ld1" for="d1">Dice2</label>
+    <input type="checkbox" id="d2" name="dice" onchange="updateScore(2)"/><label id="ld2" for="d2">Dice3</label>
+    <input type="checkbox" id="d3" name="dice" onchange="updateScore(3)"/><label id="ld3" for="d3">Dice4</label>
+    <input type="checkbox" id="d4" name="dice" onchange="updateScore(4)"/><label id="ld4" for="d4">Dice5</label>
+</body>
+</html>
