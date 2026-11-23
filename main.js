@@ -1,4 +1,10 @@
 
+const ActionEnum = Object.freeze({
+    ROLLED: 0,
+    DICE_SET_TO_KEEP: 1,
+    DICE_SET_TO_ROLL: 2,
+    PASS: 3
+});
 
 
 let players = [
@@ -275,13 +281,9 @@ function presentTempRoll(dices, score, config, lastRoll, enableReroll) {
     }
 }
 
-function updateAfterUserSelect(dices, config) {
+function updateAfterUserSelect(dices, dicesToKeep) {
     for (let i = 0; i < dices.length; ++i) {
-        if (config.d[i].checked) {
-            dices[i].kept = true;
-        } else {
-            dices[i].kept = false;
-        }
+        dices[i].kept = dicesToKeep[i];
     }
 }
 
@@ -317,11 +319,21 @@ function reroll() {
 }
 
 function updateScore(ind) {
-    updateAfterUserSelect(dices, config);
+    let diceIsBeingKept = config.d[ind].checked; 
+    let dicesToKeep = config.d.map(a => a.checked);
+    updateAfterUserSelect(dices, dicesToKeep);
     let possibleDices = dices.filter(a => !a.needToKeep);
     let kept = possibleDices.filter(a => a.kept);
     scores.current = getCurrentScore(kept);
     let invalidDices = possibleDices.filter(a => a.kept && (!a.hasPoints)).length > 0;
+    if (invalidDices) {
+      let currentVal = dices[ind].value;
+      let dicesToUpdate = possibleDices.filter(a => a.value == currentVal);
+      dicesToUpdate.map(a => a.kept = diceIsBeingKept;
+      kept = possibleDices.filter(a => a.kept);
+      score.current = getCurrentScore(kept);
+      invalidDices = false;
+    }
     let enableReroll = (scores.current > 0) && !invalidDices;
     presentTempRoll(dices, scores, config, lastRoll, enableReroll);
 }
@@ -360,3 +372,6 @@ function initWindow() {
     startPlayerTurn();
 }
 
+function changePlayers() {
+  initWindow();
+}
