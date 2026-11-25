@@ -62,33 +62,51 @@ function setValue(dices, from, howMany) {
     }
 }
 
-function get1(dice) {
-    if (dice.value == 1) {
+function get1Dice(dices, ind) {
+    let val = dices[ind].value;
+    if (val == 1) {
+        setValue(dices, ind, 1);
         return 10;
-    } else if (dice.value == 5) {
+    } else if (val == 5) {
+        setValue(dices, ind, 1);
         return 5;
     } else {
-        return 0;
+         return 0;
     }
 }
 
-function get3(dice) {
-    let res = dice.value;
-    if (res == 1) {
-        res = 10;
+function get3Dice(dices, ind, other) {
+    let val = dices[ind].value;
+    if (val == 1) {
+        val = 10;
     }
-    return res * 10;
+    let result = val * 10;
+    setValue(dices, ind, 3);
+    for (let i of other) {
+         result += get1Dice(dices, i);
+    }
+    return result;
 }
 
-function get4(dice) {
-    return get3(dice) * 2;
+function get4Dice(dices, ind, other) {
+    let val = dices[ind].value;
+    if (val == 1) {
+        val = 10;
+    }
+    let result = val * 10 * 2;
+    setValue(dices, ind, 4);
+    for (let i of other) {
+         result += get1Dice(dices, i);
+    }
+    return result;
 }
 
-function get5(dice) {
-    if (dice.value == 1) {
-        return 1000;
+function get5Dice(dices) {
+    if (dices[0].value == 1) {
+      return 1000;
     }
-    return get4(dice) * 2;
+    setValue(dices, 0, 5);
+    return dices[0].value * 10 * 4;
 }
 
 function getCurrentScore(dices) {
@@ -98,123 +116,44 @@ function getCurrentScore(dices) {
     let result = 0;
     if (len == 5){
         if (sDices[0].value == sDices[4].value) {
-            let r = get5(sDices[0]);
-            setValue(sDices, 0, 5);
-            result += r;
+            result += get5Dice(sDices);
 
         } else if (sDices[0].value == sDices[3].value) {
-            let r = get4(sDices[0]);
-            setValue(sDices, 0, 4);
-            result += r;
+            result += get4Dice(sDices, 0, [4]);
 
-            r = get1(sDices[4]);
-            if (r > 0) {
-                setValue(sDices, 4, 1);
-                result += r;
-            }
-            
         } else if (sDices[1].value == sDices[4].value) {
-            let r = get1(sDices[0]);
-            if (r > 0) {
-                setValue(sDices, 0, 1);
-                result += r;
-            }
-            
-            r = get4(sDices[1]);
-            setValue(sDices, 1, 4);
-            result += r;
+            result += get4Dice(sDices, 1, [0]);
 
         } else if (sDices[0].value == sDices[2].value) {
-            let r = get3(sDices[0]);
-            setValue(sDices, 0, 3);
-            result += r;
+            result += get3Dice(sDices, 0, [3, 4]);
 
-            r = get1(sDices[3]);
-            if (r > 0) {
-                setValue(sDices, 3, 1);
-                result += r;
-            }
-            
-            r = get1(sDices[4]);
-            if (r > 0) {
-                setValue(sDices, 4, 1);
-                result += r;
-            }
-            
         } else if (sDices[1].value == sDices[3].value) {
-            let r = get1(sDices[0]);
-            if (r > 0) {
-                setValue(sDices, 0, 1);
-                result += r;
-            }
-            
-            r = get3(sDices[1]);
-            setValue(sDices, 1, 3);
-            result += r;
+            result += get3Dice(sDices, 1, [0, 4]);
 
-            r = get1(sDices[4]);
-            if (r > 0) {
-                setValue(sDices, 4, 1);
-                result += r;
-            }
         } else if (sDices[2].value == sDices[4].value) {
-            let r = get1(sDices[0]);
-            if (r > 0) {
-                setValue(sDices, 0, 1);
-                result += r;
-            }
+            result += get3Dice(sDices, 2, [0, 1]);
 
-            r = get1(sDices[1]);
-            if (r > 0) {
-                setValue(sDices, 1, 1);
-                result += r;
-            }
-
-            r = get3(sDices[2]);
-            setValue(sDices, 2, 3);
-            result += r;
-        } 
+        }
     } else if (len == 4){
         if (sDices[0].value == sDices[3].value) {
-            let r = get4(sDices[0]);
-            setValue(sDices, 0, 4);
-            result += r;
+            result += get4Dice(sDices, 0, []);
 
         } else if (sDices[0].value == sDices[2].value) {
-            let r = get3(sDices[0]);
-            setValue(sDices, 0, 3);
-            result += r;
+            result += get3Dice(sDices, 0, [3]);
 
-            r = get1(sDices[3]);
-            if (r > 0) {
-                setValue(sDices, 3, 1);
-                result += r;
-            }
         } else if (sDices[1].value == sDices[3].value) {
-            let r = get1(sDices[0]);
-            if (r > 0) {
-                setValue(sDices, 0, 1);
-                result += r;
-            }
-            r = get3(sDices[1]);
-            setValue(sDices, 1, 3);
-            result += r;
-        } 
+            result += get3Dice(sDices, 1, [0]);
+
+        }
     } else if (len == 3){
         if (sDices[0].value == sDices[2].value) {
-            let r = get3(sDices[0]);
-            setValue(sDices, 0, 3);
-            result += r;
+            result += get3Dice(sDices, 0, []);
         }
     }
 
     if (result == 0) {
         for (let i = 0; i < len; ++i) {
-            let r = get1(sDices[i]);
-            if (r > 0) {
-                setValue(sDices, i, 1);
-                result += r;
-            }
+            result += get1Dice(sDices, 0);
         }
     }
     return result;
@@ -225,7 +164,7 @@ function getValuesAsArray(dices) {
 }
 
 function getRandomScore() {
-    dices.map(a => a.rolling=false);
+    dices.map(a => {a.rolling=false;});
     rollAll(dices);
     for (let i = 0; i < dices.length; ++i) {
         config.ld[i].innerHTML = dices[i].value;
@@ -243,7 +182,6 @@ function rollSetUp(dices) {
             dices[i].needToKeep = true;
         } else {
             dices[i].kept = false;
-            
         }
     }
 }
@@ -325,23 +263,15 @@ function updateScore(ind) {
     let possibleDices = dices.filter(a => !a.needToKeep);
     let kept = possibleDices.filter(a => a.kept);
     scores.current = getCurrentScore(kept);
-    let invalidDices = possibleDices.filter(a => a.kept && (!a.hasPoints)).length > 0;
-    if (invalidDices) {
-      let currentVal = dices[ind].value;
-      let dicesToUpdate = possibleDices.filter(a => a.value == currentVal);
-      dicesToUpdate.map(a => a.kept = diceIsBeingKept;
-      kept = possibleDices.filter(a => a.kept);
-      score.current = getCurrentScore(kept);
-      invalidDices = false;
-    }
-    let enableReroll = (scores.current > 0) && !invalidDices;
+    let invalidDices = possibleDices.filter(a => a.kept && (!a.hasPoints));
+    let enableReroll = (scores.current > 0) && (invalidDices.length == 0);
     presentTempRoll(dices, scores, config, lastRoll, enableReroll);
 }
 
 function startPlayerTurn() {
     resetDices(dices);
     rollAll(dices);
-    lastRoll = dices.map(a => a.rolling ? a.value : 'X');
+    lastRoll = dices.map(a => a.value);
     scores.last = 0;
     scores.current = getCurrentScore(dices);
     let enableReroll = scores.current > 0;
