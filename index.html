@@ -21,11 +21,15 @@
     <button id="passButton" onclick="passTurn()">Pass</button>
     <div id="result">Score</div>
     <div>Select dice You want to keep</div>
-    <input type="checkbox" id="d0" name="dice" onchange="updateScore(0)"/><label id="ld0" for="d0">Dice1</label>
-    <input type="checkbox" id="d1" name="dice" onchange="updateScore(1)"/><label id="ld1" for="d1">Dice2</label>
-    <input type="checkbox" id="d2" name="dice" onchange="updateScore(2)"/><label id="ld2" for="d2">Dice3</label>
-    <input type="checkbox" id="d3" name="dice" onchange="updateScore(3)"/><label id="ld3" for="d3">Dice4</label>
-    <input type="checkbox" id="d4" name="dice" onchange="updateScore(4)"/><label id="ld4" for="d4">Dice5</label>
-    <canvas id="chart"></canvas>
+    <input type="checkbox" id="d0" name="dice" onchange="toggleDice(0)"/><label id="ld0" for="d0">Dice1</label>
+    <input type="checkbox" id="d1" name="dice" onchange="toggleDice(1)"/><label id="ld1" for="d1">Dice2</label>
+    <input type="checkbox" id="d2" name="dice" onchange="toggleDice(2)"/><label id="ld2" for="d2">Dice3</label>
+    <input type="checkbox" id="d3" name="dice" onchange="toggleDice(3)"/><label id="ld3" for="d3">Dice4</label>
+    <input type="checkbox" id="d4" name="dice" onchange="toggleDice(4)"/><label id="ld4" for="d4">Dice5</label>
+    <details><summary>5k6 probability table</summary><canvas id="5k6"></canvas></details>
+    <details><summary>4k6 probability table</summary><canvas id="4k6"></canvas></details>
+    <details><summary>3k6 probability table</summary><canvas id="3k6"></canvas></details>
+    <details><summary>2k6 probability table</summary><canvas id="2k6"></canvas></details>
+    <details><summary>1k6 probability table</summary><canvas id="1k6"></canvas></details>
 </body>
 </html>

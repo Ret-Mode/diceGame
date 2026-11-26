@@ -90,6 +90,13 @@ function reroll() {
 
 }
 
+function toggleDice(ind) {
+    let pDices = dices.filter(a => !a.old && !a.kept);
+    let groups = splitToGroups(pDices);
+    let points = getTotalPoints(groups);
+    config.resultText.innerHTML = points;
+}
+
 function startPlayerTurn() {
     reset(dices);
     roll(dices);
@@ -120,13 +127,19 @@ function initWindow() {
     }
     config.roll = document.getElementById("rollButton");
     config.pass = document.getElementById("passButton");
+    getChart(5, document.getElementById("5k6"));
+    getChart(4, document.getElementById("4k6"));
+    getChart(3, document.getElementById("3k6"));
+    getChart(2, document.getElementById("2k6"));
+    getChart(1, document.getElementById("1k6"));
     startPlayerTurn();
-    charrt();
 }
 
 function changePlayers() {
   initWindow();
 }
+
+//===== Probabilities and plots
 
 function createDistribution(dicesNum) {
     let dist = {};
@@ -138,7 +151,6 @@ function createDistribution(dicesNum) {
         dices.forEach((a,b)=> a.value = vals[b]);
 
         let pts = getTotalPoints(splitToGroups(dices));
-        if (pts == 5) alert(vals);
         dist[String(pts)] = (dist[String(pts)] ??= 0) + 100/total;
         vals[0]++;
         for (let i = 0; i < dicesNum-1; ++i) {
@@ -150,23 +162,28 @@ function createDistribution(dicesNum) {
             }
         }
     } while (vals[dicesNum - 1] <= 6);
-    
-    return dist;
+    let sortedLabels = Object.keys(dist).sort((a,b) => Number(a) - Number(b));
+    return {
+        labels: sortedLabels,
+        values: sortedLabels.map(a => dist[a]),
+        incremental:sortedLabels.map((sum => a => sum += dist[a])(0)),
+        decremental:sortedLabels.toReversed().map((sum => a => sum += dist[a])(0)).reverse()
+
+    }
 }
 
-function charrt() {
-  let d = createDistribution(5);
-  let labels = Object.keys(d).sort((a,b) => Number(a) - Number(b));
-  new Chart(
-    document.getElementById('chart'),
+function getChart(diceNum, element) {
+  let d = createDistribution(diceNum);
+  return new Chart(
+    element,
     {
       type: 'line',
       data: {
-        labels: labels,
+        labels: d.labels,
         datasets: [
-          {label: 'Equal',data: labels.map(a => d[a])},
-          {label: 'Less or Equal to',data: labels.map((sum => n => sum += d[n])(0))},
-          {label: 'Greater or Equal to',data: labels.toReversed().map((sum => n => sum += d[n])(0)).reverse()}
+          {label: 'Equal',data: d.values},
+          {label: 'Less or Equal',data: d.incremental},
+          {label: 'Greater or Equal',data: d.decremental}
         ]
       },
       options: {
