@@ -18,264 +18,85 @@ let maxPlayers = 1;
 let currentScore = 0;
 let probabilities = [];
 let lastRoll = "";
+let charts = [];
 
 const dices = [
-    {value: 1, rolling:true, hasPoints:false, kept:false, needToKeep:false},
-    {value: 1, rolling:true, hasPoints:false, kept:false, needToKeep:false},
-    {value: 1, rolling:true, hasPoints:false, kept:false, needToKeep:false},
-    {value: 1, rolling:true, hasPoints:false, kept:false, needToKeep:false},
-    {value: 1, rolling:true, hasPoints:false, kept:false, needToKeep:false}
+    {value: 1, kept:false, old:false},
+    {value: 1, kept:false, old:false},
+    {value: 1, kept:false, old:false},
+    {value: 1, kept:false, old:false},
+    {value: 1, kept:false, old:false}
 ];
+
+const pointGroups = [];
 
 const scores = {
     last:0,
-    current:0
+    current:0,
+    currentMax:0
 };
 
 const config = {};
+
+function reset(dices) {
+    for (let i = 0; i< dices.length; ++i){
+        dices[i].kept = false;
+        dices[i].old = false;
+    }
+}
 
 function rollRandomValue() {
     return Math.floor(Math.random()*6 + 1);
 }
 
-function rollAll(dices) {
-    for (let i = 0; i < dices.length; ++i) {
-        dices[i].hasPoints = false;
-        dices[i].rolling = true;
-        dices[i].value = rollRandomValue();
-    }
+function roll(dices) {
+    dices.map(a => a.value = rollRandomValue());
 }
 
-function resetDices(dices) {
-    for (let i = 0; i < dices.length; ++i) {
-        dices[i].value = 0;
-        dices[i].rolling = false;
-        dices[i].hasPoints = false;
-        dices[i].kept = false;
-        dices[i].needToKeep = false;
+function getPoints(diceVal, length) {
+    if (diceVal == 1) diceVal = 10;
+    if (length == 5) {
+        return diceVal == 10 ? 1000 : diceVal * 10 * 4;
+    } else if (length == 4) {
+       return diceVal * 10 * 2;
+    } else if (length == 3) {
+       return diceVal * 10;
     }
+    return (diceVal == 10 || diceVal == 5) ? diceVal : 0;
 }
 
-function setValue(dices, from, howMany) {
-    for (let i = 0; i < howMany; ++i) {
-        dices[i+from].hasPoints = true;
-    }
-}
-
-function get1Dice(dices, ind) {
-    let val = dices[ind].value;
-    if (val == 1) {
-        setValue(dices, ind, 1);
-        return 10;
-    } else if (val == 5) {
-        setValue(dices, ind, 1);
-        return 5;
-    } else {
-         return 0;
-    }
-}
-
-function get3Dice(dices, ind, other) {
-    let val = dices[ind].value;
-    if (val == 1) {
-        val = 10;
-    }
-    let result = val * 10;
-    setValue(dices, ind, 3);
-    for (let i of other) {
-         result += get1Dice(dices, i);
-    }
-    return result;
-}
-
-function get4Dice(dices, ind, other) {
-    let val = dices[ind].value;
-    if (val == 1) {
-        val = 10;
-    }
-    let result = val * 10 * 2;
-    setValue(dices, ind, 4);
-    for (let i of other) {
-         result += get1Dice(dices, i);
-    }
-    return result;
-}
-
-function get5Dice(dices) {
-    if (dices[0].value == 1) {
-      return 1000;
-    }
-    setValue(dices, 0, 5);
-    return dices[0].value * 10 * 4;
-}
-
-function getCurrentScore(dices) {
-    dices.map(a => a.hasPoints = false);
-    let len = dices.length;
+function splitToGroups(dices) {
+    let groups = [];
     let sDices = dices.toSorted((a,b) => a.value - b.value);
-    let result = 0;
-    if (len == 5){
-        if (sDices[0].value == sDices[4].value) {
-            result += get5Dice(sDices);
-
-        } else if (sDices[0].value == sDices[3].value) {
-            result += get4Dice(sDices, 0, [4]);
-
-        } else if (sDices[1].value == sDices[4].value) {
-            result += get4Dice(sDices, 1, [0]);
-
-        } else if (sDices[0].value == sDices[2].value) {
-            result += get3Dice(sDices, 0, [3, 4]);
-
-        } else if (sDices[1].value == sDices[3].value) {
-            result += get3Dice(sDices, 1, [0, 4]);
-
-        } else if (sDices[2].value == sDices[4].value) {
-            result += get3Dice(sDices, 2, [0, 1]);
-
-        }
-    } else if (len == 4){
-        if (sDices[0].value == sDices[3].value) {
-            result += get4Dice(sDices, 0, []);
-
-        } else if (sDices[0].value == sDices[2].value) {
-            result += get3Dice(sDices, 0, [3]);
-
-        } else if (sDices[1].value == sDices[3].value) {
-            result += get3Dice(sDices, 1, [0]);
-
-        }
-    } else if (len == 3){
-        if (sDices[0].value == sDices[2].value) {
-            result += get3Dice(sDices, 0, []);
+    let len = sDices.length;
+    let options = [
+        [0,5,[]],[0,4,[4]],[1,5,[0]],[0,3,[3,4]],[1,4,[0,4]],[2,5,[0,1]]
+    ];
+    for (let [from, to, rest] of options) {
+        if (len >= to && sDices[from].value == sDices[to-1].value) {
+            groups.push(sDices.slice(from, to));
+            rest.map(a => {if (a < len) groups.push([sDices[a]])});
+            return groups;
         }
     }
-
-    if (result == 0) {
-        for (let i = 0; i < len; ++i) {
-            result += get1Dice(sDices, 0);
-        }
-    }
-    return result;
+    return sDices.map(a => [a]); 
 }
 
-function getValuesAsArray(dices) {
-    return dices.map(a => a.value);
-}
-
-function getRandomScore() {
-    dices.map(a => {a.rolling=false;});
-    rollAll(dices);
-    for (let i = 0; i < dices.length; ++i) {
-        config.ld[i].innerHTML = dices[i].value;
-    }
-    let score = getTotalScore(dices);
-    config.resultText.innerHTML = `${score}`;
-    return score;
-}
-
-function rollSetUp(dices) {
-    for (let i = 0; i < dices.length; ++i) {
-        dices[i].rolling = false;
-        if (config.d[i].checked) {
-            dices[i].kept = true;
-            dices[i].needToKeep = true;
-        } else {
-            dices[i].kept = false;
-        }
-    }
-}
-
-function presentRoll(dices, score, config, lastRoll, enableReroll) {
-    for (let i = 0; i < dices.length; ++i) {
-        config.ld[i].innerHTML = dices[i].value;
-        if (dices[i].hasPoints) {
-            config.d[i].checked = true;
-        } else {
-            config.d[i].checked = false;
-        }
-        if (dices[i].needToKeep || !dices[i].hasPoints) {
-            config.d[i].disabled = true;
-        } else {
-            config.d[i].disabled = false;
-        }
-    }
-    let totalScore = score.last+score.current;
-    config.resultText.innerHTML = `Current Score: ${score.current} TotalScore: ${totalScore} Last Roll: ${lastRoll} Player points: ${players[0].points}`;
-    if (enableReroll) {
-        config.roll.disabled = false;
-    } else {
-        config.roll.disabled = true;
-    }
-}
-
-function presentTempRoll(dices, score, config, lastRoll, enableReroll) {
-    let totalScore = score.last+score.current;
-    config.resultText.innerHTML = `Current Score: ${score.current} TotalScore: ${totalScore} Last Roll: ${lastRoll}`;
-    if (enableReroll) {
-        config.roll.disabled = false;
-    } else {
-        config.roll.disabled = true;
-    }
-}
-
-function updateAfterUserSelect(dices, dicesToKeep) {
-    for (let i = 0; i < dices.length; ++i) {
-        dices[i].kept = dicesToKeep[i];
-    }
-}
-
-function passTurn() {
-    let possibleDices = dices.filter(a => !a.needToKeep);
-    let totalPoints = 0;
-    if (possibleDices.length == 0) {
-        totalPoints = scores.last;
-    } else {
-        scores.current = getCurrentScore(possibleDices);
-        if (scores.current > 0) {
-            totalPoints = scores.current + scores.last;
-        }
-        players[0].points += totalPoints;
-    }
-    startPlayerTurn();
+function getTotalPoints(groups) {
+    return groups.reduce((a,b) => a + getPoints(b[0].value, b.length), 0);
 }
 
 function reroll() {
-    rollSetUp(dices);
-    let possibleDices = dices.filter(a => !a.needToKeep);
-    if (possibleDices.length == 0) {
-        resetDices(dices);
-        possibleDices = dices;
-    }
-    let toreroll = possibleDices.filter(a => !a.kept);
-    rollAll(toreroll);
-    lastRoll = dices.map(a => a.rolling ? a.value : 'X');
-    scores.last += scores.current;
-    scores.current = getCurrentScore(toreroll);
-    let enableReroll = scores.current > 0;
-    presentRoll(dices, scores, config, lastRoll, enableReroll);
-}
 
-function updateScore(ind) {
-    let diceIsBeingKept = config.d[ind].checked; 
-    let dicesToKeep = config.d.map(a => a.checked);
-    updateAfterUserSelect(dices, dicesToKeep);
-    let possibleDices = dices.filter(a => !a.needToKeep);
-    let kept = possibleDices.filter(a => a.kept);
-    scores.current = getCurrentScore(kept);
-    let invalidDices = possibleDices.filter(a => a.kept && (!a.hasPoints));
-    let enableReroll = (scores.current > 0) && (invalidDices.length == 0);
-    presentTempRoll(dices, scores, config, lastRoll, enableReroll);
 }
 
 function startPlayerTurn() {
-    resetDices(dices);
-    rollAll(dices);
-    lastRoll = dices.map(a => a.value);
-    scores.last = 0;
-    scores.current = getCurrentScore(dices);
-    let enableReroll = scores.current > 0;
-    presentRoll(dices, scores, config, lastRoll, enableReroll);
+    reset(dices);
+    roll(dices);
+    let groups = splitToGroups(dices);
+    let points = getTotalPoints(groups);
+    config.ld.map((a, ind)=>a.innerHTML = dices[ind].value);
+    config.resultText.innerHTML = points;
 }
 
 function initWindow() {
@@ -300,8 +121,58 @@ function initWindow() {
     config.roll = document.getElementById("rollButton");
     config.pass = document.getElementById("passButton");
     startPlayerTurn();
+    charrt();
 }
 
 function changePlayers() {
   initWindow();
+}
+
+function createDistribution(dicesNum) {
+    let dist = {};
+    let total = Math.pow(6,dicesNum);
+    let vals = [];
+    for (let i = 0; i < dicesNum; ++i) vals.push(1);
+    let dices = vals.map(a => {return {value : a};});
+    do {
+        dices.forEach((a,b)=> a.value = vals[b]);
+
+        let pts = getTotalPoints(splitToGroups(dices));
+        if (pts == 5) alert(vals);
+        dist[String(pts)] = (dist[String(pts)] ??= 0) + 100/total;
+        vals[0]++;
+        for (let i = 0; i < dicesNum-1; ++i) {
+            if (vals[i] > 6) {
+                vals[i] = 1;
+                vals[i+1]++;
+            } else {
+                break;
+            }
+        }
+    } while (vals[dicesNum - 1] <= 6);
+    
+    return dist;
+}
+
+function charrt() {
+  let d = createDistribution(5);
+  let labels = Object.keys(d).sort((a,b) => Number(a) - Number(b));
+  new Chart(
+    document.getElementById('chart'),
+    {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [
+          {label: 'Equal',data: labels.map(a => d[a])},
+          {label: 'Less or Equal to',data: labels.map((sum => n => sum += d[n])(0))},
+          {label: 'Greater or Equal to',data: labels.toReversed().map((sum => n => sum += d[n])(0)).reverse()}
+        ]
+      },
+      options: {
+        interaction: {intersect:false, mode:'nearest', axis:'x'},
+        scales: {x: {ticks: {display: true,autoSkip: false}}}
+      }
+    }
+  );
 }

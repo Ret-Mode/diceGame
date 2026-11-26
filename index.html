@@ -4,6 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dice Game</title>
+
+
+   <link rel="stylesheet" href="https://unpkg.com/frappe-charts/dist/frappe-charts.min.css">
+<script src="https://unpkg.com/frappe-charts/dist/frappe-charts.umd.js"></script> 
+
+    <script src="chart.js"></script>
+
     <script src="main.js"></script>
 </head>
 <body onload="initWindow()">
@@ -19,5 +26,6 @@
     <input type="checkbox" id="d2" name="dice" onchange="updateScore(2)"/><label id="ld2" for="d2">Dice3</label>
     <input type="checkbox" id="d3" name="dice" onchange="updateScore(3)"/><label id="ld3" for="d3">Dice4</label>
     <input type="checkbox" id="d4" name="dice" onchange="updateScore(4)"/><label id="ld4" for="d4">Dice5</label>
+    <canvas id="chart"></canvas>
 </body>
 </html>
