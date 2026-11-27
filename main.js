@@ -1,12 +1,4 @@
 
-const ActionEnum = Object.freeze({
-    ROLLED: 0,
-    DICE_SET_TO_KEEP: 1,
-    DICE_SET_TO_ROLL: 2,
-    PASS: 3
-});
-
-
 let players = [
     {name:"P1",points:0},
     {name:"P2",points:0}
@@ -28,7 +20,7 @@ const dices = [
     {value: 1, kept:false, old:false}
 ];
 
-const pointGroups = [];
+const pointGroups = {pts:[],noPts:[]};
 
 const scores = {
     last:0,
@@ -39,10 +31,7 @@ const scores = {
 const config = {};
 
 function reset(dices) {
-    for (let i = 0; i< dices.length; ++i){
-        dices[i].kept = false;
-        dices[i].old = false;
-    }
+    dices.forEach(a => a.kept = a.old = false);
 }
 
 function rollRandomValue() {
@@ -86,12 +75,35 @@ function getTotalPoints(groups) {
     return groups.reduce((a,b) => a + getPoints(b[0].value, b.length), 0);
 }
 
-function reroll() {
+function actualRoll(sDices) {
+    roll(sDices);
+    let groups = splitToGroups(sDices);
+    let points = 0;
+    groups.forEach(a => {
+      let p;
+      if ((p = getPoints(a[0].value, a.length))>0) {
+        pointGroups.pts.push(a);
+      } else {
+        pointGroups.noPts.push(a);
+      }
+      a.map(b => b.kept = p>0);
+      points += p;
+    });
+    config.d.map((a, ind) => a.disabled = !(a.checked = dices[ind].kept));
+    config.ld.map((a, ind) => a.innerHTML = dices[ind].value);
+    config.resultText.innerHTML = points;
+}
 
+function reroll() {
+    dices.map(a => a.old ||= a.kept);
+    let sDices = dices.filter(a => !a.old);
+    roll(sDices);
+    actualRoll(sDices);
 }
 
 function toggleDice(ind) {
-    let pDices = dices.filter(a => !a.old && !a.kept);
+    dices[ind].kept = !dices[ind].kept;
+    let pDices = dices.filter(a => !a.old && a.kept);
     let groups = splitToGroups(pDices);
     let points = getTotalPoints(groups);
     config.resultText.innerHTML = points;
@@ -99,11 +111,8 @@ function toggleDice(ind) {
 
 function startPlayerTurn() {
     reset(dices);
-    roll(dices);
-    let groups = splitToGroups(dices);
-    let points = getTotalPoints(groups);
-    config.ld.map((a, ind)=>a.innerHTML = dices[ind].value);
-    config.resultText.innerHTML = points;
+    let sDices = dices;
+    actualRoll(sDices);
 }
 
 function initWindow() {
@@ -127,16 +136,18 @@ function initWindow() {
     }
     config.roll = document.getElementById("rollButton");
     config.pass = document.getElementById("passButton");
+
     getChart(5, document.getElementById("5k6"));
     getChart(4, document.getElementById("4k6"));
     getChart(3, document.getElementById("3k6"));
     getChart(2, document.getElementById("2k6"));
     getChart(1, document.getElementById("1k6"));
+
     startPlayerTurn();
 }
 
 function changePlayers() {
-  initWindow();
+    startPlayerTurn();
 }
 
 //===== Probabilities and plots
